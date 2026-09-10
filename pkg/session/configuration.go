@@ -1,7 +1,6 @@
 package session
 
 import (
-	"fmt"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -72,10 +71,11 @@ func (r RDPConfiguration) GetGuacdConfiguration() guacd.Configuration {
 				2、其他格式的账号，如果平台中设置了 AD 域则使用平台中的设置，否则使用不设置
 	*/
 
-	parts := strings.Split(username, `\`)
-	if len(parts) == 2 {
-		username = fmt.Sprintf("%s@%s", parts[1], parts[0])
+	// domain\username 格式的账号，拆成 username 和 domain 两个参数下发。
+	// 不能拼成 username@domain，部分 AD 域控不支持 UPN 格式，会认证失败
+	if parts := strings.SplitN(username, `\`, 2); len(parts) == 2 {
 		adDomain = parts[0]
+		username = parts[1]
 	}
 
 	// 试图从 username@domain 格式的 username 中获取 AD 域的信息
